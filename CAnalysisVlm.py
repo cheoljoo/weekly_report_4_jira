@@ -56,11 +56,45 @@ robotTestcaseRe = re.compile('^\s*written by CMU robot for cmu-testcase')
 
 # wr:  or <wr> .. </wr>
 mentionedRe = re.compile(r'\[~{wr}\]'.format(wr=mysetting.myid),re.DOTALL)
-wr1Re = re.compile(r'[^\n]*\s*{wr}\s*:[^\n]*'.format(wr=mysetting.weeklyreportLabel),re.DOTALL)
-wr11Re = re.compile(r'^{wr}\s*:[^\n]*'.format(wr=mysetting.weeklyreportLabel),re.MULTILINE)
-#wr1Re = re.compile(r'(^|[^\n]+)*\s*(?P<wr>{wr}\s*:[^\n]*)'.format(wr=mysetting.weeklyreportLabel),re.MULTILINE)  # it is better.
-wr2Re = re.compile(r'&lt;*\s*{wr}\s*&gt;.*&lt;\s*/{wr}\s*&gt;'.format(wr=mysetting.weeklyreportLabel),re.DOTALL)  # MULTILINE
-wr3Re = re.compile(r'<\s*{wr}\s*>.*<\s*/{wr}\s*>'.format(wr=mysetting.weeklyreportLabel),re.DOTALL)  # MULTILINE
+wr1Re = re.compile(r'[^\n]*\s*{wr}\s*:[^\n]*'.format(wr=mysetting.weeklyReportLabel),re.DOTALL)
+wr11Re = re.compile(r'^{wr}\s*:[^\n]*'.format(wr=mysetting.weeklyReportLabel),re.MULTILINE)
+#wr1Re = re.compile(r'(^|[^\n]+)*\s*(?P<wr>{wr}\s*:[^\n]*)'.format(wr=mysetting.weeklyReportLabel),re.MULTILINE)  # it is better.
+wr2Re = re.compile(r'&lt;*\s*{wr}\s*&gt;.*&lt;\s*/{wr}\s*&gt;'.format(wr=mysetting.weeklyReportLabel),re.DOTALL)  # MULTILINE
+wr3Re = re.compile(r'<\s*{wr}\s*>.*<\s*/{wr}\s*>'.format(wr=mysetting.weeklyReportLabel),re.DOTALL)  # MULTILINE
+
+
+def work_func(x,inputdir,debug,outputfileprefix):
+    #partial_func = partial(work_func, inputdir=args.inputdir,debug=args.debug,jqlLogFlag=args.jqlLog) 
+    #print('!work filename',x,'inputdir:',inputdir)
+    cs = CAnalysisVlm(
+                 inputdir = inputdir
+                 , filename = x
+                 , debug = debug
+                 , outputfileprefix = outputfileprefix
+                 )
+    return (len(cs.vlm) )
+
+def removeWeeklyReportLabel(a = ''):
+    if not isinstance(a,(str,list)):
+        print('removeWeeklyReportLabel : it should have argument with str and list type')
+        quit(4)
+    if isinstance(a,str):
+        aList = [a]
+    else:
+        aList = a
+    for i,item in enumerate(aList):
+        item = re.sub('^\s*{wr}\s*:'.format(wr=mysetting.weeklyReportLabel),'',item.strip())
+        item = re.sub('^\s*&lt;\s*{wr}\s*&gt;'.format(wr=mysetting.weeklyReportLabel),'',item.strip())
+        item = re.sub('^\s*<\s*{wr}\s*>'.format(wr=mysetting.weeklyReportLabel),'',item.strip())
+        item = re.sub('&lt;\s*/{wr}\s*&gt;\s*$'.format(wr=mysetting.weeklyReportLabel),'',item.strip())
+        item = re.sub('<\s*/{wr}\s*>\s*$'.format(wr=mysetting.weeklyReportLabel),'',item.strip())
+        item = re.sub('^\s*<p>\s*','',item.strip())
+        item = re.sub('<p>\s*$','',item.strip())
+        item = re.sub('^\s*</p>\s*','',item.strip())
+        item = re.sub('</p>\s*$','',item.strip())
+        item = re.sub('</p>\r\n\r\n<p>','<p>',item.strip())
+        aList[i] = item
+    return (''.join(aList) ).strip().replace("\r\n", "<p>") + "<p>"
 
 
 class CAnalysisVlm :
@@ -157,48 +191,48 @@ class CAnalysisVlm :
                          #continue
                         pass
                     ccc = {}
-                    ansBodyParse = {}
+                    ansBodyParse = []
                     mentionedFlag = False
                     self.setPerson(ccc,comment,'author','updateAuthor')
                     self.setDate(ccc,comment,'updated','updated')
                      #ccc['author'] = comment['updateAuthor']['name']
                      #ccc['authorName'] = comment['updateAuthor']['displayName']
                      #ccc['authorEmail'] = comment['updateAuthor']['emailAddress']
-                    ccc['body'] = comment['body']
                      #ccc['updated'] = comment['updated']
                      #ccc['updatedDate'] = self.getDate(comment['updated'])
                     date = ccc['updated']
                     y = wr1Re.findall(comment['body'])
                     if y:
                         #print('wr1',kVlm , y)
-                        if date not in ansBodyParse:
-                            ansBodyParse[date] = []
                         for y1 in y:
                             y2 = wr11Re.findall(y1)
                             #print('y2:',y2)
-                            ansBodyParse[date] += y2
+                            ansBodyParse += y2
                     y = wr2Re.findall(comment['body'])
                     if y:
                         #print('wr2',kVlm , y)
-                        if date not in ansBodyParse:
-                            ansBodyParse[date] = []
-                        ansBodyParse[date] += y
+                        ansBodyParse += y
                     y = wr3Re.findall(comment['body'])
                     if y:
                         #print('wr3',kVlm , y)
-                        if date not in ansBodyParse:
-                            ansBodyParse[date] = []
-                        ansBodyParse[date] += y
+                        ansBodyParse += y
                     if ansBodyParse:
-                        ccc['wrBody'] = ansBodyParse
+                        ccc['wrBody'] = removeWeeklyReportLabel(ansBodyParse)
                         v['existsWrBody'] = True
                     y = mentionedRe.findall(comment['body'])
                     if y:
                         mentionedFlag = True
                         v['existsMentionedBody'] = True
-                        ccc['mentionedBody'] = ccc['body']
+                        ccc['mentionedBody'] = removeWeeklyReportLabel(comment['body'])
                     if ccc['author'] != mysetting.myid and mentionedFlag == False:
                         continue
+                    if self.debug: print('body:',comment['body'])
+                    ccc['body'] = removeWeeklyReportLabel(comment['body'])
+                    if 'wrBody' in ccc:
+                        if self.debug: print('wrBody:',ccc['wrBody'])
+                    if 'mentionedBody' in ccc:
+                        if self.debug: print('mentionedBody:',ccc['mentionedBody'])
+                    if self.debug: print('new body:',ccc['body'])
                     if 'myCommentsList' not in v:
                         v['myCommentsList'] = []
                     v['myCommentsList'].append(ccc)
@@ -619,278 +653,6 @@ class CAnalysisVlm :
             return '\n'.join(a[0:lines]) , '\n' + '\n'.join(a[lines:])
         return '\n','\n'
 
-    def runWorkPriorityRule(self,v,rule,evidence,depth=0):
-        # workPriorityRule['_field_(rk)']['project(rk2)'] = {
-        #   'WAVE(rk3)':500(rv3),
-         #if depth > 0: print(rule,evidence,depth)
-        for rk,rv in rule.items():
-            if rk == '_field_':
-                if isinstance(rv,dict):
-                    for rk2,rv2 in rv.items():
-                        if rk2 not in v:
-                            continue
-                        if not isinstance(rv2,dict):
-                            print('runWorkPriorityRule: _field_ : error : key : ' ,rk2, 'type:',type(rv2)) 
-                        for rk3 , rv3 in rv2.items():
-                             #if depth > 0: print('0:',rk2,v[rk2],rk3,rv3,evidence,depth)
-                            if isinstance(v[rk2] ,(list,tuple)):
-                                 #if depth > 0: print('1:',rk3,rv3,evidence,depth)
-                                for i4 in v[rk2]:
-                                    if (isinstance(rk3,str) and i4.lower() == rk3.lower()) or (not isinstance(rk3,str) and i4 == rk3) :
-                                        if isinstance(rv3,dict):
-                                            self.runWorkPriorityRule(v,rv3,'{a}-{b}-{i} : '.format(a=rk2,b=rk3,i=str(v[rk2])) + evidence,depth=depth+1)
-                                        else:
-                                            if len(rv3) < 4 : print('ERROR', rv2 , ':',rv3 , ':should more than 4.')
-                                            v['workPriority'] += rv3[0]
-                                            if rv3[1] and rv3[1] not in v['workPriorityKinds']:
-                                                v['workPriorityKinds'].append(rv3[1])
-                                            v['workPriorityEvidenceStr'].append('point {v:-15d} : reason> {r} : type f1: {e}'.format(e=evidence + ':{a}-{b}'.format(a=rk2,b=rk3),v=int(rv3[0]),r=rv3[2]))
-                                            v['workPriorityEvidence'].append({'reason-eng' : rv3[2] , 'reason-kor' : rv3[3] , 'point' : rv3[0] ,  'kind' : rv3[1] , 'variable':rk2 , 'value':rk3})
-                            else :
-                                 #if depth > 0: print('2:',rk3,rv3,evidence,depth)
-                                if (isinstance(rk3,str) and isinstance(v[rk2],str) and v[rk2].lower() == rk3.lower()) or (not isinstance(rk3,str) and v[rk2] == rk3) :
-                                    if isinstance(rv3,dict):
-                                        self.runWorkPriorityRule(v,rv3,'{a}-{b} : '.format(a=rk2,b=rk3) + evidence ,depth=depth+1)
-                                    else:
-                                        v['workPriority'] += rv3[0]
-                                        if rv3[1] and rv3[1] not in v['workPriorityKinds']:
-                                            v['workPriorityKinds'].append(rv3[1])
-                                        v['workPriorityEvidenceStr'].append('point {v:-15d} : reason> {r} : type f2: {e}'.format(e=evidence + ':{a}-{b}'.format(a=rk2,b=rk3),v=int(rv3[0]),r=rv3[2]))
-                                        v['workPriorityEvidence'].append({'reason-eng' : rv3[2] , 'reason-kor' : rv3[3] , 'point' : rv3[0] ,  'kind' : rv3[1] , 'variable':rk2 , 'value':rk3})
-                else:
-                    print('runWorkPriorityRule: _field_ : error : type : ' , type(rv))
-            elif rk == '_default_':
-                v['workPriority'] += rv[0]
-                if rv[1] and rv[1] not in v['workPriorityKinds']:
-                    v['workPriorityKinds'].append(rv[1])
-                v['workPriorityEvidenceStr'].append('point {v:-15d} : reason> {r} : type d1: {e}'.format(e=evidence,v=int(rv[0]),r=rv[2]))
-                v['workPriorityEvidence'].append({'reason-eng' : rv[2] , 'reason-kor' : rv[3] , 'point' : rv[0] ,  'kind' : rv[1] , 'variable':rk , 'value':rk})
-            elif rk == '_include_':
-                if isinstance(rv,dict):
-                    for rk2,rv2 in rv.items():
-                        if rk2 not in v:
-                            continue
-                        if not isinstance(rv2,dict):
-                            print('runWorkPriorityRule: _include_ : error : key : ' ,rk2, 'type:',type(rv2)) 
-                        for rk3 , rv3 in rv2.items():
-                             #print('0:',rk2,v[rk2],rk3,rv3,evidence,depth)
-                            if isinstance(v[rk2] ,(list,tuple)):
-                                 #print('1:',rk3,rv3,evidence,depth)
-                                for i4 in v[rk2]:
-                                    if not i4:
-                                        continue
-                                    if isinstance(rk3,(list,tuple)):
-                                         #print('1-1:',rk3,rv3,evidence,depth)
-                                        myFindFlag = True
-                                        for myitem in rk3:
-                                            if not myitem:
-                                                continue
-                                            if i4.lower().find(myitem.lower()) < 0:
-                                                myFindFlag = False
-                                                break
-                                        if myFindFlag:
-                                            v['workPriority'] += rv3[0]
-                                            if rv3[1] and rv3[1] not in v['workPriorityKinds']:
-                                                v['workPriorityKinds'].append(rv3[1])
-                                            v['workPriorityEvidenceStr'].append('point {v:-15d} : reason> {r} : type i1: {e}'.format(e=evidence + ':{a}-{b}'.format(a=rk2,b=str(rk3)),v=int(rv3[0]),r=rv3[2]))
-                                            v['workPriorityEvidence'].append({'reason-eng' : rv3[2] , 'reason-kor' : rv3[3] , 'point' : rv3[0] ,  'kind' : rv3[1] , 'variable':rk2 , 'value':rk3})
-                                    elif (isinstance(rk3,str) and i4.lower() == rk3.lower()) or (not isinstance(rk3,str) and i4 == rk3) :
-                                        if isinstance(rv3,dict):
-                                            self.runWorkPriorityRule(v,rv3,'{a}-{b}-{i} : '.format(a=rk2,b=rk3,i=str(v[rk2])) + evidence,depth=depth+1)
-                                        else:
-                                            v['workPriority'] += rv3[0]
-                                            if rv3[1] and rv3[1] not in v['workPriorityKinds']:
-                                                v['workPriorityKinds'].append(rv3[1])
-                                            v['workPriorityEvidenceStr'].append('point {v:-15d} : reason> {r} : type i3: {e}'.format(e=evidence + ':{a}-{b}'.format(a=rk2,b=rk3),v=int(rv3[0]),r=rv3[2]))
-                                            v['workPriorityEvidence'].append({'reason-eng' : rv3[2] , 'reason-kor' : rv3[3] , 'point' : rv3[0] ,  'kind' : rv3[1] , 'variable':rk2 , 'value':rk3})
-                            else :
-                                 #print('2:',rk3,rv3,evidence,depth)
-                                if isinstance(rk3,(list,tuple)):
-                                    myFindFlag = True
-                                    for myitem in rk3:
-                                        if not myitem:
-                                            continue
-                                        print('2-1:',myitem,i4,evidence,depth)
-                                        if i4.lower().find(myitem.lower()) < 0:
-                                            myFindFlag = False
-                                            break
-                                    if myFindFlag:
-                                        v['workPriority'] += rv3[0]
-                                        if rv3[1] and rv3[1] not in v['workPriorityKinds']:
-                                            v['workPriorityKinds'].append(rv3[1])
-                                        v['workPriorityEvidenceStr'].append('point {v:-15d} : reason> {r} : type i2: {e}'.format(e=evidence + ':{a}-{b}'.format(a=rk2,b=str(rk3)),v=int(rv3[0]),r=rv3[2]))
-                                elif v[rk2].lower().find(rk3.lower()) >= 0:
-                                     #print('2-2:',v[rk2],rk3,depth)
-                                    if isinstance(rv3,dict):
-                                        self.runWorkPriorityRule(v,rv3,'{a}-{b} : '.format(a=rk2,b=rk3) + evidence,depth=depth+1)
-                                    else:
-                                        v['workPriority'] += rv3[0]
-                                        if rv3[1] and rv3[1] not in v['workPriorityKinds']:
-                                            v['workPriorityKinds'].append(rv3[1])
-                                        v['workPriorityEvidenceStr'].append('point {v:-15d} : reason> {r} : type i4: {e}'.format(e=evidence + ':{a}-{b}'.format(a=rk2,b=rk3),v=int(rv3[0]),r=rv3[2]))
-                else:
-                    print('runWorkPriorityRule: _include_ : error : type : ' , type(rv))
-            else:
-                print('runWorkPriorityRule: error : ' , rk)
-
-
-    def getOwner(self, commiturl) :
-        ownereamil : str = ''
-        if (commiturl.find("http://vgit.lge.com/na") >=0) : # mysetting.mygerriturl
-            commiturlparsing=commiturl.split("/")
-            changestr = "/changes/"+commiturlparsing[-1]+"/detail"
-            try:
-                changes = self.restna.get(changestr, headers={'Content-Type': 'application/json'})
-            except:
-                return ''
-            ownereamil = str(changes['owner']['email']).split('@')[0]
-        elif (commiturl.find("http://vgit.lge.com/eu") >=0) : # mysetting.mygerriturl
-            commiturlparsing=commiturl.split("/")
-            changestr = "/changes/"+commiturlparsing[-1]+"/detail"
-            try:
-                changes = self.resteu.get(changestr, headers={'Content-Type': 'application/json'})
-            except:
-                return ''
-            ownereamil = str(changes['owner']['email']).split('@')[0]
-        elif (commiturl.find("http://vgit.lge.com/as") >=0) : # mysetting.mygerriturl
-            commiturlparsing=commiturl.split("/")
-            changestr = "/changes/"+commiturlparsing[-1]+"/detail"
-            try:
-                changes = self.restas.get(changestr, headers={'Content-Type': 'application/json'})
-            except:
-                return ''
-            ownereamil = str(changes['owner']['email']).split('@')[0]
-        '''
-        '''
-        return ownereamil
-
-    def commentBodyParse(self,c,body):
-        if not body:
-            return None
-        c['whom'] = []
-        result_list = re.findall(r"\[~([a-zA-Z0-9\._\+]+)\]",body)
-        for i in result_list:
-            c['whom'].append(i)
-        if body.startswith('written by CMU robot for cmu-testcase'):
-            if c['author'] in ['tigerauto','cheoljoo.lee']:
-                print('! autoTestcaseComment')
-                c['autoTestcaseComment'] = c['author']
-        if body.startswith('written by CMU robot for updating comments overdue and pending etc ->'):
-            if c['author'] in ['tigerauto','cheoljoo.lee']:
-                c['autoUpdateComments'] = {}
-                parseKey = {}
-                parseKey['id'] = robotStartRe
-                parseKey['msg'] = robotReasonRe
-                for a in body.split('\n'):
-                    for line in a.split('<br>'):
-                        for k,vRe in parseKey.items():
-                            grp = vRe.search(line)
-                            if grp:
-                                c['autoUpdateComments'][k] = grp.group(k)
-        if body.startswith('The changes(commits) about this JIRA ticket have been merged in'):  # vgit
-            if c['author'] == 'vc.integrator':
-                c['commit'] = {}
-                c['commit']['type'] = 'vgit'
-                c['commit']['date'] = c['updatedDate']
-                parseKey = {}
-                parseKey['url'] = vgitUrlLineRe
-                parseKey['url2'] = vgitUrlLineRe2
-                parseKey['vlm'] = vgitVlmLineRe
-                parseKey['branch'] = vgitBranchLineRe
-                for a in body.split('\n'):
-                    for line in a.split('<br>'):
-                        for k,vRe in parseKey.items():
-                            grp = vRe.search(line)
-                            if grp:
-                                if 'url' in  c['commit'] or 'url2' in  c['commit']:
-                                    continue
-                                c['commit'][k] = grp.group(k)
-                                if self.debug: print('matched:',k,grp.group(k))
-                if 'url' in c['commit']:
-                    return c['commit']['url']
-                elif 'url2' in c['commit']:
-                    return c['commit']['url2']
-            elif body.startswith('The changes(commits) about this JIRA ticket have been merged in SLDD'):
-                c['commit'] = {}
-                c['commit']['type'] = 'sldd'
-                parseKey = {}
-                parseKey['url'] = slddUrlLineRe
-                parseKey['vlm'] = vlmRe
-                parseKey['model'] = modelRe
-                parseKey['branch'] = branchRe
-                parseKey['committer'] = committerRe
-                parseKey['summary'] = summaryRe
-                parseKey['date'] = slddDateRe
-                for a in body.split('\n'):
-                    for line in a.split('<br>'):
-                        for k,vRe in parseKey.items():
-                            grp = vRe.search(line)
-                            if grp:
-                                c['commit'][k] = grp.group(k)
-                                if self.debug: print('matched:',k,grp.group(k))
-            elif body.startswith('The changes(commits) about this JIRA ticket have been merged in mod.lge.com'):
-                c['commit'] = {}
-                c['commit']['type'] = 'mod'
-                parseKey = {}
-                parseKey['url'] = modUrlLineRe
-                parseKey['committer'] = committerRe
-                parseKey['summary'] = summaryRe
-                parseKey['date'] = modDateRe
-                for a in body.split('\n'):
-                    for line in a.split('<br>'):
-                         #print('!line:',line)
-                        for k,vRe in parseKey.items():
-                             #print(k,vRe)
-                            grp = vRe.search(line)
-                            if grp:
-                                c['commit'][k] = grp.group(k)
-                                if self.debug: print('matched:',k,grp.group(k))
-        return None
-
-
-    def whichProgress(self,wp):
-        pg = ['DV','PV','MP']
-        if wp in mysetting.milestoneStart:
-            today = str(datetime.date.today())
-             #print('today:',today)
-            for pgi in pg:
-                if pgi in mysetting.milestoneStart[wp] and mysetting.milestoneStart[wp][pgi] and today <= mysetting.milestoneStart[wp][pgi]:
-                    return pgi
-            pgi = pg[-1]
-            if pgi in mysetting.milestoneStart[wp] and mysetting.milestoneStart[wp][pgi] and today > mysetting.milestoneStart[wp][pgi]:
-                return 'AS'
-        return None
-    def whichModel(self,p):
-         #if p['key'] == 'GENXII-6732': print(p['key'])
-        if p['project'] in self.whichModelLower:
-            ans = self.whichModelLower[p['project']].get('default',p['project'])
-             #if p['key'] == 'GENXII-6732': print('ans:',ans)
-            k = p['project']
-            v = self.whichModelLower[k]
-             #if p['key'] == 'GENXII-6732': print('ans:',k)
-            for k2,v2 in v.get('fields',{}).items():
-                 #if p['key'] == 'GENXII-6732': print('ans:',k2)
-                if k2 in p and p[k2]:
-                     #if p['key'] == 'GENXII-6732': print('whichModel !1 p k2:',k2 , 'value:',p[k2], 'k3 = keys v2:',list(v2.keys()), 'ans:',ans, 'which model:',self.whichModelLower)
-                    if self.debug : print('whichModel !1 p k2:',k2 , 'value:',p[k2], 'k3 = keys v2:',list(v2.keys()), 'ans:',ans, 'which model:',self.whichModelLower , p,file=self.printf)
-                    for k3,v3 in v2.items():
-                        if isinstance(p[k2], (list, tuple)):
-                            p[k2] = [x.lower().replace('_','-') for x in p[k2]]
-                            if k3 in p[k2]:
-                                 #if p['key'] == 'GENXII-6732': print('whichModel !2 matched p k3:',k3 , 'value:',p[k2], 'return:',v3)
-                                if self.debug : print('whichModel !2 matched p k3:',k3 , 'value:',p[k2], 'return:',v3,file=self.printf)
-                                return v3
-                        else:
-                            p[k2] = p[k2].replace('_','-')
-                            if k3 == p[k2].lower():
-                                 #if p['key'] == 'GENXII-6732': print('whichModel !2 matched p k3:',k3 , 'value:',p[k2].lower(), 'return:',v3)
-                                if self.debug : print('whichModel !2 matched p k3:',k3 , 'value:',p[k2].lower(), 'return:',v3,file=self.printf)
-                                return v3
-        else :
-            ans = p['project']
-         #if p['key'] == 'GENXII-6732': print('ret ans:',ans)
-        return ans
-
     def setPerson(self,v,f,vname,fname):
         '''
         if 'key' in v and v['key'] == 'XWAVE-2235':
@@ -936,6 +698,7 @@ class CAnalysisVlm :
         else :
             return False
         return True
+
     def isOverdue(self,date):
         """
         True  : date > today
@@ -958,6 +721,7 @@ class CAnalysisVlm :
         else :
             return False
         return False
+
     def isOverSetDueDate(self,date):
         """
         True  : date > today
@@ -1039,55 +803,11 @@ def objwalk(obj, path=(), memo=None):
     else:
         yield path, obj
 
-class checkWorkPriorityRule:
-    def __init__(self,rule,prefix='',inputdir='.'):
-        self.wpr = []
-        self.printWorkPriorityRule(rule,prefix)
-        # for item in self.wpr:
-        #     print("normal:",item)
-        self.wpr = sorted(self.wpr)
-        with open('{ii}/rule.txt'.format(ii=inputdir),"w") as external_file:
-            print('rule definition output file :','{ii}/rule.txt'.format(ii=inputdir))
-            for v,s in self.wpr:
-                # sort(key = lambda item : ( -1 * item['workPriority'] , len(item['print'])
-                print('rule:{v:-10d} {s}'.format(v=v,s=s),file=external_file)
-                print('rule:{v:-10d} {s}'.format(v=v,s=s))
-            
-    def printWorkPriorityRule(self,rule,prefix):
-        for rk,rv in rule.items():
-            if rk == '_field_' or rk == '_include_':
-                if isinstance(rv,dict):
-                    for rk2,rv2 in rv.items():   # rk2 == 'project'
-                        if not isinstance(rv2,dict):
-                            print('printWorkPriorityRule: _field_ : error : key : ' ,rk2, 'type:',type(rv2)) 
-                        for rk3 , rv3 in rv2.items():   # rk3 == HONDATELE   rv3 == [1000,'','','']
-                            if isinstance(rv3,dict):
-                                self.printWorkPriorityRule(rv3,prefix + ' : {t}-{a}-{b} '.format(t=rk,a=rk2,b=rk3))
-                            else:
-                                if len(rv3) < 4 : print('ERROR', rv2 , ':',rv3 , ':should more than 4.')
-                                self.wpr.append([rv3[0],prefix + ' : {t}-{a}-{b}-{k}\n\t\teng:{r1}\n\t\tkor:{r2} '.format(t=rk,a=rk2,b=rk3,k=rv3[1],r1=rv3[2],r2=rv3[3])])
-                                # print({'workPriority':rv3[0],'print': prefix + ' : {a}-{b}-{k}-{r1}-{r2} '.format(a=rk2,b=rk3,k=rv3[1],r1=rv3[2],r2=rv3[3])})
-                else:
-                    print('printWorkPriorityRule: _field_ : error : type : ' , type(rv))
-            elif rk == '_default_':
-                self.wpr.append([rv[0],prefix + ' : {a}-{b}-{k}-{r1}-{r2} '.format(a=rk,b='',k=rv[1],r1=rv[2],r2=rv[3])])
-                # print({'workPriority':rv[0],'print': prefix + ' : {a}-{b}-{k}-{r1}-{r2} '.format(a=rk,b='',k=rv[1],r1=rv[2],r2=rv[3])})
-            else:
-                print('printWorkPriorityRule: error : ' , rk)
-    
-
-def work_func(x,inputdir,debug,outputfileprefix):
-    #partial_func = partial(work_func, inputdir=args.inputdir,debug=args.debug,jqlLogFlag=args.jqlLog) 
-    #print('!work filename',x,'inputdir:',inputdir)
-    cs = CAnalysisVlm(
-                 inputdir = inputdir
-                 , filename = x
-                 , debug = args.debug
-                 , outputfileprefix = outputfileprefix
-                 )
-    return (len(cs.vlm) )
 
 if (__name__ == "__main__"):
+
+    if mysetting.optionalId:
+        mysetting.myid = mysetting.optionalId
 
     parser = argparse.ArgumentParser(
         prog=sys.argv[0],

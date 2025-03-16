@@ -5,8 +5,9 @@
 all: 
 	if [ ! -e mysetting.py ]; then cp mysetting_example.py mysetting.py; echo "edit mysetting.py"; exit 4;  fi
 	echo "!! you should change your id passwd in mysetting.py."
-	python3 CJQLAdvancedPersonal.py --dirname=wrjson/data --fileprefix="wr" --alltickets --updateduration=-15d
+	python3 CJQLAdvancedPersonal.py --dirname=wrjson/data --fileprefix="wr" --alltickets
 	make t
+	make h
 t:
 	python3 CAnalysisVlm.py --inputdir=wrjson/data --inputfileprefix="wr" --outputfileprefix=updated --finaldir=wrjson
 

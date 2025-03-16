@@ -61,6 +61,8 @@ class CSearchVlm :
         self.auth_name = auth_name
         self.auth_passwd = auth_passwd
         self.alltickets = alltickets
+        if mysetting.optionalId:
+            mysetting.myid = mysetting.optionalId
         self.updateduration = updateduration
         self.lang = lang
         if mysetting.myid:
@@ -127,10 +129,7 @@ class CSearchVlm :
         jql_request = '(assignee in ({list}) OR reporter in ({list}) OR  watcher in ({list})) {issuetypeFilter}'.format(list=mysetting.myid,issuetypeFilter=mysetting.CJQLAdvancedIssuetypeFilter)
         if not self.alltickets:
             jql_request += ' AND status not in (Monitoring, Resolved, Closed)'
-        if self.updateduration:
-            jql_request += ' AND updated >= "{sd}"'.format(sd=self.updateduration)
-        else:
-            jql_request += ' AND updated >= "{sd}"'.format(sd=mysetting.fromDateStr)
+        jql_request += ' AND updated >= "{sd}"'.format(sd=self.updateduration)
         jql_request = '( ' + jql_request + ' ) ' + ' OR ( assignee in ({list}) AND status in ("Open","In Progress") {issuetypeFilter} )'.format(list=mysetting.myid,issuetypeFilter=mysetting.CJQLAdvancedIssuetypeFilter)
         #jql_request = '( ' + jql_request + ' ) ' + ' OR ( assignee in ({list}) AND status in ("Open","In Progress") )'.format(list=mysetting.myid,issuetypeFilter=mysetting.CJQLAdvancedIssuetypeFilter)
         print("it will take a long time (JQL) : " + jql_request)
@@ -376,13 +375,6 @@ if (__name__ == "__main__"):
         default='jira',
         help='prefix of filenme   default : jira')
 
-    parser.add_argument(
-        '--updateduration',
-        metavar="<str>",
-        type=str,
-        default='',
-        help='jql query use it (updated >= [--updateduration]\n\t\t\tex) --updateduration=-7d to get tickets within 1 week\n\t\t\tdeault: use mysetting.fromDateStr {d}'.format(d=mysetting.fromDateStr))
-
     parser.add_argument( '--alltickets', default=False , action="store_true" , help='get all type tickets. but it gets unresolved tickets without --alltickets')
     parser.add_argument( '--debug', default=False , action="store_true" , help="debug mode on")
 
@@ -394,7 +386,7 @@ if (__name__ == "__main__"):
                  , dirname = args.dirname
                  , fileprefix = args.fileprefix
                  , alltickets = args.alltickets
-                 , updateduration = args.updateduration
+                 , updateduration = mysetting.crawlDurationDays
                  )
     cs.connect()
 
