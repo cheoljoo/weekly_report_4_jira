@@ -15,7 +15,6 @@ from functools import partial
 print(os.sys.path)
 #from atlassian import Jira
 from requests.auth import HTTPDigestAuth
-from pygerrit2 import GerritRestAPI, HTTPBasicAuth
 
 import email, smtplib, ssl
 from email import encoders
