@@ -487,6 +487,7 @@ class CWeekyReport :
         sss += """<th>Status</th>"""
         sss += """<th>Created</th>"""
         sss += """<th>Updated</th>"""
+        sss += """<th>DueDate</th>"""
         sss += """<th>Labels</th>"""
         sss += """<th>Comments</th>"""
         sss += """<th>Description</th>"""
@@ -525,6 +526,7 @@ class CWeekyReport :
                 rowTable += "<td align=center>" + v['status'] + "</td> "
             rowTable += "<td align=left>" + v['createdDate'] + "</td> "
             rowTable += "<td align=left>" + v['updatedDate'] + "</td> "
+            rowTable += "<td align=left>" + v.get('dueDate','') + "</td> "
             rowTable += "<td align=left>" + "<br>".join(v['labels']) + "</td> "
             if v.get('myCommentsList',[]):
                 rowTable += """<td align=left>"""
