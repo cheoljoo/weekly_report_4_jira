@@ -417,6 +417,7 @@ class CWeekyReport :
                 , wrOnly = False                     # all comments
                 , existsReportDurationDays = False       # within recent 7 days
                 , workPriority=True
+                , todo = True
                 )
         if tableFlag:
             s+= html
@@ -463,6 +464,7 @@ class CWeekyReport :
             , wrOnly = False         # show all if False , show wr tag if True (wr : weeklyReport with wr tag)
             , existsReportDurationDays=False # show all tickets if False , or show within recent mysetting.reportDurationDays if True (ex. 7 : within recent 7 days)
             , workPriority=False
+            , todo=False
             ):
         tableFlag = False
         sss = ""
@@ -562,6 +564,8 @@ class CWeekyReport :
             else :
                 rowTable += "<td> </td>"
             rowTable += "</tr>\n"
+            if todo:
+                rowFlag = True   # show row even though ticket does not have comments
             if rowFlag:
                 sss += rowTable
                 tableFlag = True
