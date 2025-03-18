@@ -11,7 +11,6 @@ import glob
 import csv
 from multiprocessing import Lock
 from functools import partial
-print(os.sys.path)
 #from atlassian import Jira
 from requests.auth import HTTPDigestAuth
 
@@ -38,26 +37,26 @@ if os.name == 'posix':
 
 print(os.name)
 
-dateRe = re.compile('^\s*(?P<date>(?P<year>20[0-9]+)-(?P<month>[0-9]+)-(?P<day>[0-9]+))')
-deliverablesRe = re.compile('^\s*deliverables\s*:')
-vgitUrlLineRe2 = re.compile('^\s*The changes\(commits\) about this JIRA ticket have been merged in\s*(?P<url2>http\S+)\s*$')
-vgitUrlLineRe = re.compile('^\s*#\s*(?P<url>\S+)\s*$')
-vgitVlmLineRe = re.compile('^\s*For further information, please refer to release notification\s*(?P<vlm>\S+)\s*$')
-vgitBranchLineRe = re.compile('^\s*\*\s*branch\s*:\s*(?P<branch>\S+)\s*$')
-slddUrlLineRe = re.compile('^\s*The changes\(commits\) about this JIRA ticket have been merged in SLDD\s*(?P<url>http\S+)\s*$')
-vlmRe = re.compile('^\s*VLM\s*:\s*(?P<vlm>[A-Z0-9]+-[0-9]+)\s+')
-commit_idRe = re.compile('^\s*commit_id\s*:\s*(?P<commit_id>\S+)\s+')
-projectRe = re.compile('^\s*project\s*:\s*(?P<project>\S+)\s+')
-modelRe = re.compile('^\s*model\s*:\s*(?P<model>\S+)\s+')
-branchRe = re.compile('^\s*branch\s*:\s*(?P<branch>\S+)\s+')
-committerRe = re.compile('^\s*committer\s*:\s*(?P<committerEmail>(?P<committer>[a-z.A-Z0-9-_]+)@[a-z.A-Z0-9-_]+)')
-summaryRe = re.compile('^\s*summary\s*:\s*(?P<summary>.*)$')
-slddDateRe = re.compile('^date\s*:\s*(?P<date>(?P<year>20\d+)-(?P<month>\d+)-(?P<day>\d+)\s+(?P<time>\S+))\s+(?P<timezone>\S+)')
-totalAutoFileRe = re.compile('^\s*total count of auto file\s*:\s*(?P<slddtotalautofile>\d+)')
-totalSLDDRe = re.compile('^\s*total changed count of sldd file\s*:\s*(?P<slddtotalsldd>\d+)')
-totalOthersRe = re.compile('^\s*total changed count of others file\s*:\s*(?P<slddtotalothers>\d+)')
-modUrlLineRe = re.compile('^\s*The changes\(commits\) about this JIRA ticket have been merged in mod\.lge\.com\s*(?P<url>http\S+)\.\s*$')
-modDateRe = re.compile('^\s*(?P<date>(?P<year>20\d+)-(?P<month>\d+)-(?P<day>\d+))T(?P<time>\d+:\d+:\d+\.\d+)+(?P<timezone>\S+)\s*$') # 06:33:43.000+09:00
+dateRe = re.compile(r'^\s*(?P<date>(?P<year>20[0-9]+)-(?P<month>[0-9]+)-(?P<day>[0-9]+))')
+deliverablesRe = re.compile(r'^\s*deliverables\s*:')
+vgitUrlLineRe2 = re.compile(r'^\s*The changes\(commits\) about this JIRA ticket have been merged in\s*(?P<url2>http\S+)\s*$')
+vgitUrlLineRe = re.compile(r'^\s*#\s*(?P<url>\S+)\s*$')
+vgitVlmLineRe = re.compile(r'^\s*For further information, please refer to release notification\s*(?P<vlm>\S+)\s*$')
+vgitBranchLineRe = re.compile(r'^\s*\*\s*branch\s*:\s*(?P<branch>\S+)\s*$')
+slddUrlLineRe = re.compile(r'^\s*The changes\(commits\) about this JIRA ticket have been merged in SLDD\s*(?P<url>http\S+)\s*$')
+vlmRe = re.compile(r'^\s*VLM\s*:\s*(?P<vlm>[A-Z0-9]+-[0-9]+)\s+')
+commit_idRe = re.compile(r'^\s*commit_id\s*:\s*(?P<commit_id>\S+)\s+')
+projectRe = re.compile(r'^\s*project\s*:\s*(?P<project>\S+)\s+')
+modelRe = re.compile(r'^\s*model\s*:\s*(?P<model>\S+)\s+')
+branchRe = re.compile(r'^\s*branch\s*:\s*(?P<branch>\S+)\s+')
+committerRe = re.compile(r'^\s*committer\s*:\s*(?P<committerEmail>(?P<committer>[a-z.A-Z0-9-_]+)@[a-z.A-Z0-9-_]+)')
+summaryRe = re.compile(r'^\s*summary\s*:\s*(?P<summary>.*)$')
+slddDateRe = re.compile(r'^date\s*:\s*(?P<date>(?P<year>20\d+)-(?P<month>\d+)-(?P<day>\d+)\s+(?P<time>\S+))\s+(?P<timezone>\S+)')
+totalAutoFileRe = re.compile(r'^\s*total count of auto file\s*:\s*(?P<slddtotalautofile>\d+)')
+totalSLDDRe = re.compile(r'^\s*total changed count of sldd file\s*:\s*(?P<slddtotalsldd>\d+)')
+totalOthersRe = re.compile(r'^\s*total changed count of others file\s*:\s*(?P<slddtotalothers>\d+)')
+modUrlLineRe = re.compile(r'^\s*The changes\(commits\) about this JIRA ticket have been merged in mod\.lge\.com\s*(?P<url>http\S+)\.\s*$')
+modDateRe = re.compile(r'^\s*(?P<date>(?P<year>20\d+)-(?P<month>\d+)-(?P<day>\d+))T(?P<time>\d+:\d+:\d+\.\d+)+(?P<timezone>\S+)\s*$') # 06:33:43.000+09:00
 wr1Re = re.compile(r'[^\n]*\s*{wr}\s*:[^\n]*'.format(wr=mysetting.weeklyReportLabel),re.DOTALL)
 wr11Re = re.compile(r'^{wr}\s*:[^\n]*'.format(wr=mysetting.weeklyReportLabel),re.MULTILINE)
 #wr1Re = re.compile(r'(^|[^\n]+)*\s*(?P<wr>{wr}\s*:[^\n]*)'.format(wr=mysetting.weeklyReportLabel),re.MULTILINE)  # it is better.
