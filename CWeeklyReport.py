@@ -9,7 +9,6 @@ from collections import defaultdict
 import os
 import glob
 import csv
-import psutil  # https://pypi.org/project/psutil/
 from multiprocessing import Lock
 from functools import partial
 print(os.sys.path)
@@ -26,6 +25,9 @@ import mysetting
 from pprint import PrettyPrinter
 import string
 
+if os.name == 'posix':
+    import psutil  # https://pypi.org/project/psutil/
+
 # https://superfastpython.com/multiprocessing-pool-mutex-lock/
 # lock[row['id']] = Lock()
 
@@ -33,6 +35,8 @@ import string
 #- 모든 ticket중에서 "그 사람"이 comments를 남긴 내용중에 tiger_weekly_report 이 comments의 첫줄에 적은 ticket들에 적은 comments를 출력한다.
 #- status 상관없고, 
 # multiprocessing with multiple arguments : https://python.omics.wiki/multiprocessing_map/multiprocessing_partial_function_multiple_arguments
+
+print(os.name)
 
 dateRe = re.compile('^\s*(?P<date>(?P<year>20[0-9]+)-(?P<month>[0-9]+)-(?P<day>[0-9]+))')
 deliverablesRe = re.compile('^\s*deliverables\s*:')
@@ -422,21 +426,20 @@ class CWeekyReport :
         if tableFlag:
             s+= html
 
-        sysinfo = '<p style=\"color:blue\">hostname: </p>' + os.popen('hostname').read()
-        sysinfo += '\b<br><p style=\"color:blue\">process path: </p>' + str(get_parent_process())
-        sysinfo += '\n<br><p style=\"color:blue\">memory: </p>' + str(psutil.virtual_memory())
-        sysinfo += '\n<br><p style=\"color:blue\">disk /home: </p>' + str(psutil.disk_usage('/home'))
-        sysinfo += '\n<br><p style=\"color:blue\">boot_time: </p>' + str(psutil.boot_time())
-        sysinfo += '\n<br><p style=\"color:blue\">network: </p>' + str(psutil.net_if_addrs())
-        p = psutil.Process(os.getpid())
-        sysinfo += '\n<br><p style=\"color:blue\">cwd: </p>' + str(p.cwd())
+        if os.name == 'posix':
+            import psutil  # https://pypi.org/project/psutil/
+            sysinfo = '<p style=\"color:blue\">hostname: </p>' + os.popen('hostname').read()
+            sysinfo += '\b<br><p style=\"color:blue\">process path: </p>' + str(get_parent_process())
+            sysinfo += '\n<br><p style=\"color:blue\">memory: </p>' + str(psutil.virtual_memory())
+            sysinfo += '\n<br><p style=\"color:blue\">disk /home: </p>' + str(psutil.disk_usage('/home'))
+            sysinfo += '\n<br><p style=\"color:blue\">boot_time: </p>' + str(psutil.boot_time())
+            sysinfo += '\n<br><p style=\"color:blue\">network: </p>' + str(psutil.net_if_addrs())
+            p = psutil.Process(os.getpid())
+            sysinfo += '\n<br><p style=\"color:blue\">cwd: </p>' + str(p.cwd())
         #sysinfo += '\n<br><p style=\"color:blue\">cmdline: </p>' + str(p.cmdline())
-        sysinfo += '\n<br><p style=\"color:blue\">users: </p>' + str(psutil.users())
-        sysinfo += '\n<br><p style=\"color:blue\">username: </p>' + str(p.username())
-
-            
-            
-        s += """
+            sysinfo += '\n<br><p style=\"color:blue\">users: </p>' + str(psutil.users())
+            sysinfo += '\n<br><p style=\"color:blue\">username: </p>' + str(p.username())
+            s += """
 <br>
 <br> <a href="http://mod.lge.com/hub/cheoljoo.lee/weekly_work_report_from_jira">Source</a>
 <br> 직접 고쳐서 merge request를 해주시면 무쟈게 감사하겠습니다. 
@@ -448,6 +451,7 @@ class CWeekyReport :
 <br><details><summary>Running System Information</summary>""" + sysinfo + """
 </details><br>
 <br>"""
+
         s += """
 <br>
 <br> Have a happy time!

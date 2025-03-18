@@ -9,7 +9,6 @@ from collections import defaultdict
 import os
 import glob
 import csv
-import psutil  # https://pypi.org/project/psutil/
 from multiprocessing import Pool
 from functools import partial
 print(os.sys.path)
