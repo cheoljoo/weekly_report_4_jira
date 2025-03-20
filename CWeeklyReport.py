@@ -164,6 +164,79 @@ class CWeekyReport :
             ff.write(html)
         with open(idhtmlfilename, 'w', encoding='utf-8', errors='ignore') as ff:
             ff.write(html)
+        
+        self.sendMail(subject='슬기로운 개발 생활 : 일주일동안의 report'
+                , sender = mysetting.myid
+                , receiver = [mysetting.myid]
+                , htmlBody = html
+                , attachfiles = [filename]
+                , test = mysetting.myIsTestToSendMail
+                )
+        
+    def sendMail(self
+                 , subject=''
+                 , sender = 'cheoljoo.lee@lge.com'
+                 , receiver = []
+                 , htmlBody = ''
+                 , attachfiles = []
+                 , test = True
+            ):
+        if test == True:
+            print('not send mail:',sender,receiver,subject)
+            return
+        else :
+            print('send mail:',sender,receiver,subject,attachfiles)
+        message = MIMEMultipart("alternative")
+        message["Subject"] = subject
+        message["From"] = sender
+        message["To"] = ','.join(list(receiver))
+
+        # Turn these into plain/html MIMEText objects
+        #part1 = MIMEText(txt, "plain")
+        part2 = MIMEText(htmlBody, "html")
+
+        # Add HTML/plain-text parts to MIMEMultipart message
+        # The email client will try to render the last part first
+        #message.attach(part1)
+        message.attach(part2)
+
+        for file in attachfiles:
+            if not os.path.exists(file):
+                print(file , "is not exist")
+                quit(4)
+
+            # Open PDF file in binary mode
+            with open(file, "rb") as attachment:
+                # Add file as application/octet-stream
+                # Email client can usually download this automatically as attachment
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(attachment.read())
+
+            # Encode file in ASCII characters to send by email
+            encoders.encode_base64(part)
+
+            # Add header as key/value pair to attachment part
+            part.add_header(
+                "Content-Disposition",
+                f"attachment; filename= {file}",
+            )
+
+            # Add attachment to message and convert message to string
+            message.attach(part)
+
+        # Create secure connection with server and send email
+        #context = ssl.create_default_context()
+        #with smtplib.SMTP_SSL("lgekrhqmh01.lge.com", 465, context=context) as server:
+            
+        for r in receiver:
+            print("! send mail to " , r , "from:",sender , "subject:",subject)
+            with smtplib.SMTP("lgekrhqmh01.lge.com", 25) as server:
+                #server.login(self.sender, password)
+                server.sendmail(
+                    sender, r , message.as_string()
+                )
+                server.quit()
+
 
     def makeHtml(self):
         # fixed first column and row
