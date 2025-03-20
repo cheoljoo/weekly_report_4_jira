@@ -23,6 +23,7 @@ from email.mime.text import MIMEText
 import mysetting
 from pprint import PrettyPrinter
 import string
+import sendmail
 
 if os.name == 'posix':
     import psutil  # https://pypi.org/project/psutil/
@@ -165,13 +166,15 @@ class CWeekyReport :
         with open(idhtmlfilename, 'w', encoding='utf-8', errors='ignore') as ff:
             ff.write(html)
         
-        self.sendMail(subject='슬기로운 개발 생활 : 일주일동안의 report'
+        if os.name == 'posix':
+            self.sendMail(subject=str(today) + ' 슬기로운 개발 생활 : 일주일동안의 Comments 기반의 report'
                 , sender = mysetting.myid
                 , receiver = [mysetting.myid]
                 , htmlBody = html
                 , attachfiles = [filename]
                 , test = mysetting.myIsTestToSendMail
                 )
+
         
     def sendMail(self
                  , subject=''
@@ -181,6 +184,9 @@ class CWeekyReport :
                  , attachfiles = []
                  , test = True
             ):
+        if '@' not in sender:
+            sender += '@lge.com'
+        receiver = [ item if '@' in item else item+'@lge.com' for item in receiver]
         if test == True:
             print('not send mail:',sender,receiver,subject)
             return
@@ -189,16 +195,16 @@ class CWeekyReport :
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
         message["From"] = sender
-        message["To"] = ','.join(list(receiver))
+        message["To"] = ','.join(receiver)
 
         # Turn these into plain/html MIMEText objects
-        #part1 = MIMEText(txt, "plain")
-        part2 = MIMEText(htmlBody, "html")
+         #part = MIMEText(htmlBody, "plain")
+        part = MIMEText(htmlBody, "html")
 
         # Add HTML/plain-text parts to MIMEMultipart message
         # The email client will try to render the last part first
         #message.attach(part1)
-        message.attach(part2)
+        message.attach(part)
 
         for file in attachfiles:
             if not os.path.exists(file):
@@ -229,9 +235,9 @@ class CWeekyReport :
         #with smtplib.SMTP_SSL("lgekrhqmh01.lge.com", 465, context=context) as server:
             
         for r in receiver:
-            print("! send mail to " , r , "from:",sender , "subject:",subject)
+            print("! sent mail to " , r , "from:",sender , "subject:",subject)
             with smtplib.SMTP("lgekrhqmh01.lge.com", 25) as server:
-                #server.login(self.sender, password)
+                #print(sender, r , message)
                 server.sendmail(
                     sender, r , message.as_string()
                 )
@@ -368,10 +374,12 @@ class CWeekyReport :
           }
         """
 
-        today = datetime.date.today()
-        s += """<H2>{t}</H2>""".format(t=str(today))
-        s += """<a href="{http}/{id}/history">History</a> """.format(id=mysetting.myid,http=mysetting.myhttp)
-        s += """ :  """
+        todaytime = datetime.datetime.today()
+        s += """<H2>{t}</H2>""".format(t=str(todaytime))
+        if mysetting.myhttp.strip():
+            s += """<a href="{http}/{id}/{id}.html">Today</a> """.format(id=mysetting.myid,http=mysetting.myhttp)
+            s += """ :  """
+            s += """<a href="{http}/{id}/">History</a> """.format(id=mysetting.myid,http=mysetting.myhttp)
         if self.lang == 'korean':
             s += """
 <br>
