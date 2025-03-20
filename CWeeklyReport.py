@@ -23,7 +23,6 @@ from email.mime.text import MIMEText
 import mysetting
 from pprint import PrettyPrinter
 import string
-import sendmail
 
 if os.name == 'posix':
     import psutil  # https://pypi.org/project/psutil/
