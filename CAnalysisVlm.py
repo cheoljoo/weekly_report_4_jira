@@ -74,7 +74,7 @@ def work_func(x,inputdir,debug,outputfileprefix):
 def removeWeeklyReportLabel(a = ''):
     if not isinstance(a,(str,list)):
         print('removeWeeklyReportLabel : it should have argument with str and list type')
-        quit(4)
+        return ''
     if isinstance(a,str):
         aList = [a]
     else:
