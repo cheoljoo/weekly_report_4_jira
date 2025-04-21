@@ -603,8 +603,9 @@ class CWeekyReport :
             else:
                 rowTable += "<td align=left>" + v['summary'] + "</td> "
             if v['reopened'] == True:
-                reopenedList = [f"{author} ({date})" for author, date in zip(data["reopenedAuthor"], data["reopenedCreatedDate"])]
-                rowTable += "<td align=center>" + v['status'] + ' (Reopened by ' + ' <br>'.join(reopenedList) + ' )</td> '
+                if 'reopenedAuthor' in v and 'reopenedCreatedDate' in v:
+                    reopenedList = [f"{author} ({date})" for author, date in zip(v["reopenedAuthor"], v["reopenedCreatedDate"])]
+                    rowTable += "<td align=center>" + v['status'] + ' (Reopened by ' + ' <br>'.join(reopenedList) + ' )</td> '
             else:
                 rowTable += "<td align=center>" + v['status'] + "</td> "
             rowTable += "<td align=left>" + v['createdDate'] + "</td> "
