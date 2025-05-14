@@ -126,6 +126,7 @@ class CAnalysisVlm :
 
         sevenDayAgo = datetime.date.today() - datetime.timedelta(days=7)
         sevenDaysAgoStr = sevenDayAgo.strftime('%Y-%m-%d')
+        self.fileprefix = self.origin['fileprefix']
         for issue in self.origin['issues']:
             self.vlm[issue['key']] = {}
             v = self.vlm[issue['key']]
@@ -138,6 +139,7 @@ class CAnalysisVlm :
             self.setDate(v,f,'created','created')
             self.setPerson(v,f,'assignee','assignee')
             v['status'] = f['status']['name']
+            v['fileprefix'] = self.fileprefix
             v['components'] = []
             for component in f['components']:
                 v['components'].append(component['name'])

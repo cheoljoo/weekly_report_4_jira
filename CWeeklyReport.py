@@ -585,7 +585,8 @@ class CWeekyReport :
             rowFlag = False
             rowTable = "<tr>"
             rowTable += """<th scope="row"> """ + str(lineNum) + "</th> "
-            rowTable += """<th scope="row"> <a href="http://vlm.lge.com/issue/browse/""" + v['key'] + '" target="_blank">' + v['key'] + "</a>" + "</th> "
+            vlmHost = v['fileprefix'].split('-')[1]
+            rowTable += """<th scope="row"> <a href="http://{vlmHost}/issue/browse/""".format(vlmHost=vlmHost) + v['key'] + '" target="_blank">' + v['key'] + "</a>" + "</th> "
             # sss += """<th> <a href="http://vlm.lge.com/issue/browse/""" + v['key'] + '">' + v['key'] + "</a>" + "</th> "
             if workPriority == True:
                 rowTable += "<td>{w}</td>".format(w=v.get('workPriority',0))
@@ -599,7 +600,7 @@ class CWeekyReport :
             rowTable += "<td align=center>{a}{ah}</td> ".format(a=v['assigneeName'],ah=ah)
             rowTable += "<td align=center>" + v['reporterName'] + "</td> "
             if v['parent']:
-                rowTable += "<td align=left>" + """<a href="http://vlm.lge.com/issue/browse/""" + v['parent'] + '">' + v['parent'] + "</a> / " + v['summary'] + "</td> "
+                rowTable += "<td align=left>" + """<a href="http://{vlmHost}/issue/browse/""".format(vlmHost=vlmHost) + v['parent'] + '">' + v['parent'] + "</a> / " + v['summary'] + "</td> "
             else:
                 rowTable += "<td align=left>" + v['summary'] + "</td> "
             if v['reopened'] == True:
