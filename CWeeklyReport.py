@@ -522,7 +522,7 @@ class CWeekyReport :
 <br>
 <br> <a href="http://mod.lge.com/hub/cheoljoo.lee/weekly_work_report_from_jira">Source</a>
 <br> 직접 고쳐서 merge request를 해주시면 무쟈게 감사하겠습니다. 
-<br> 추가 요청 사항 있으시면 , <a href="http://vlm.lge.com/issue/browse/TIGER-10754">TIGER-10754</a> 에 subtask로 ticket생성 부탁드립니다. assignee는 cheoljoo.lee 로 해주십시요.
+<br> 추가 요청 사항 있으시면 , <a href="http://jira.lge.com/issue/browse/TIGER-10754">TIGER-10754</a> 에 subtask로 ticket생성 부탁드립니다. assignee는 cheoljoo.lee 로 해주십시요.
 <br>
 <br> Contribution:
 <br> 1. jongseok.won - add arrow mark to show conveniently with details tag
@@ -578,10 +578,14 @@ class CWeekyReport :
        
         #for vlm , v in sorted(self.vcIntegrator.items(),key = lambda item: (str(item[0].split('-')[0]),int(item[0].split('-')[1]))):
         lineNum = 1
+        a = 0
         for k,v in sortedList:
             # filter routine
             if mysetting.myid != v['assignee'] and mysetting.myid != v['reporter'] :
                 continue
+            if a == 0:
+                print('v:',v)
+                a = 1
             rowFlag = False
             rowTable = "<tr>"
             rowTable += """<th scope="row"> """ + str(lineNum) + "</th> "

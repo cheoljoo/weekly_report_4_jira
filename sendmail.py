@@ -20,7 +20,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-jira_rest_url = "http://vlm.lge.com/issue/rest/api/latest/"
+jira_rest_url = "http://jira.lge.com/issue/rest/api/latest/"
 issue_url = jira_rest_url + "issue/"
 search_url = jira_rest_url + "search/"
 tracker_url = jira_rest_url + "project/"
